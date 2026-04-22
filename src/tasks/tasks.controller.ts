@@ -12,6 +12,7 @@ import {
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { UpdateProgressDto } from './dto/update-progress.dto';
 import { AuthGuard } from '../common/guards/auth/auth.guard';
 import { CurrentUser } from '../common/decorators/current-user/current-user.decorator';
 import type { User } from '../users/interfaces/user.interface';
@@ -36,16 +37,35 @@ export class TasksController {
     return this.tasksService.findByUserId(userId);
   }
 
+  // Displays change history for a task
+  @Get(':id/history')
+  getHistory(@Param('id', ParseIntPipe) id: number) {
+    return this.tasksService.getHistory(id);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.tasksService.findOne(id);
   }
 
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto) {
-    return this.tasksService.create(createTaskDto);
+  create(@Body() createTaskDto: CreateTaskDto, @CurrentUser() user: User) {
+    return this.tasksService.create({
+      ...createTaskDto,
+      userId: user.id,
+    });
   }
 
+  // Updates the progress of a task
+  @Patch(':id/progress')
+  updateProgress(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateProgressDto: UpdateProgressDto,
+  ) {
+    return this.tasksService.updateProgress(id, updateProgressDto);
+  }
+
+  // Updates a task
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
